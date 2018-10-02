@@ -12,6 +12,7 @@
 #include "GameFramework/PlayerController.h"
 #include "EngineGlobals.h"
 #include "Engine/Engine.h"
+#include "UnrealNetwork.h"
 
 // Sets default values
 ACPPbasicChar::ACPPbasicChar()
@@ -44,8 +45,8 @@ ACPPbasicChar::ACPPbasicChar()
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	
+	bReplicates = true;
 
-	
 }
 
 // Called when the game starts or when spawned
@@ -129,3 +130,14 @@ void ACPPbasicChar::MoveForward(float Value) {
 		AddMovementInput(Direction, Value);
 	}
 }
+/*
+void ACPPbasicChar::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
+{
+//	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME_CONDITION(ACPPbasicChar, ReplicatedMovement, COND_AutonomousOnly);
+}
+
+void ACPPbasicChar::PreReplication(IRepChangedPropertyTracker & ChangedPropertyTracker)
+{
+	DOREPLIFETIME_ACTIVE_OVERRIDE(ACPPbasicChar, ReplicatedMovement, bReplicateMovement);
+}*/

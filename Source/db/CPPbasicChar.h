@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/Actor.h"
 #include "CPPbasicChar.generated.h"
 
 UCLASS()
@@ -44,5 +45,11 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 		class UCameraComponent* Camera;
+
+
 	
+
+	//void GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const override;
+	//void PreReplication(IRepChangedPropertyTracker & ChangedPropertyTracker) override;
+
 };
