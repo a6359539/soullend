@@ -25,6 +25,21 @@
  */
 using namespace std;
 
+USTRUCT(BlueprintType)
+struct FMyItemTable
+{
+	GENERATED_BODY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		TArray<int32> itemnum;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		TArray<int32> amount;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		TArray<int32> enhance;
+};
+
+
+
+
 UCLASS()
 class DB_API UMyGameInstance : public UGameInstance
 {
@@ -39,6 +54,29 @@ public:
 		FString	ID;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 		FString		PASSWORD;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		FVector	location;
+	
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		int	MAINLEVEL;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		int LEVELEXP;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		FName nickname;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		FText text;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		TArray<int32> USEWEAPONLEVEL;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		TArray<int32> USEWEAPONLEVELEXP;
+
 	UFUNCTION(BlueprintCallable)
 		bool connectserver();
 	UFUNCTION(BlueprintCallable)
@@ -64,4 +102,29 @@ public:
 	UFUNCTION(BlueprintCallable)
 		bool trylistenservercreate();
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		FMyItemTable itemtable;
+
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void firstsetting();
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void secondsetting();
+
+	UFUNCTION(BlueprintCallable)
+		bool saveinventory();
+
+
+	UFUNCTION(BlueprintCallable)
+		bool checkpossibletext(FString Tempstring );
+
+	UFUNCTION(BlueprintCallable)
+		bool Trycreatenickname(FString Tempstring);
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void afternickname(int type);
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void loadinventory();
 };

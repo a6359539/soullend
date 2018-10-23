@@ -1,5 +1,6 @@
 #include <Windows.h>
 #include <tchar.h>
+#include <vector>
 
 #define MAX_BUFF_SIZE   4000
 #define MAX_PACKET_SIZE  255
@@ -27,6 +28,8 @@
 #define CS_TRYLOGIN 1
 #define SC_TRYLOGIN 1
 
+
+
 #define CS_ATTACK		6
 #define CS_IDSERCH  7
 #define CS_RESTART	8	
@@ -39,7 +42,25 @@
 #define SC_IDSERCH  7
 #define CSSC_IPPORT 2
 #define CSSC_LISTENSERVERIP 3
+#define CS_SAVECHAR 4
+#define SC_LOADCHAR 4
+#define CS_SAVECHARsc 5
+#define SC_LOADCHARsc 5
+#define CS_TRYNICKNAME 6
+#define SC_AFTERNICKNAME 6
+
+using namespace std;
 #pragma pack (push, 1)
+
+struct inventorystruct {
+	WORD itemnum;
+	WORD amount;
+	BYTE enchant;
+};
+struct weaponstruct {
+	BYTE weponlevel;
+	INT weponexp;
+};
 
 
 struct cs_packet_login {
@@ -53,6 +74,37 @@ struct sc_packet_loginafter {
 	BYTE type;
 	WORD aftertype;
 };
+
+struct cssc_packet_saveloadchar {
+	BYTE size;
+	BYTE type;
+	inventorystruct inventory[20];
+	BYTE level;
+	INT exp;
+	INT x;
+	INT y;
+	INT z;
+};
+
+struct cssc_packet_saveloadcharsc {
+	BYTE size;
+	BYTE type;
+	weaponstruct weapon[9];
+	WCHAR nickname[20];
+};
+
+struct cs_packet_trycreatenickname{
+	BYTE size;
+	BYTE type;
+	WCHAR nickname[20];
+};
+
+struct sc_packet_afternickname {
+	BYTE size;
+	BYTE type;
+	BYTE after;
+};
+
 
 struct cs_packet_connetserver {
 	BYTE size;

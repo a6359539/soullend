@@ -5,10 +5,13 @@
 #include "Containers/StringConv.h"
 #include "Engine/World.h"
 
+
 #define MAX_BUFF_SIZE   4000
 #define MAX_PACKET_SIZE  255
 #define OP_RECV  1
 #define OP_SEND  2
+
+
 
 
 UMyGameInstance* TempInstance;
@@ -100,7 +103,6 @@ void ProcessPacket(int id, unsigned char buf[])
 	}
 	case CSSC_IPPORT:
 	{
-		
 		sc_packet_connetserver *my_packet = reinterpret_cast<sc_packet_connetserver  *>(buf);
 		TempInstance->connectconsoltext(my_packet->portoffset);
 		//	wchar_t strr[100];
@@ -116,16 +118,53 @@ void ProcessPacket(int id, unsigned char buf[])
 
 		break;
 	}
-	case SC_IDSERCH:
-	{
-
-
-	}break;
 	case CSSC_LISTENSERVERIP:
 	{
 		sc_packet_testconnetserver *my_packet = reinterpret_cast<sc_packet_testconnetserver  *>(buf);
 		TempInstance->testconnectconsoltext(my_packet->ip);
 	}break;
+	case SC_LOADCHAR:
+	{
+		cssc_packet_saveloadchar *my_packet = reinterpret_cast<cssc_packet_saveloadchar  *>(buf);
+		for (auto i = 0; i < 20; i++)
+		{
+			TempInstance->itemtable.amount[i] = my_packet->inventory[i].amount;
+			TempInstance->itemtable.itemnum[i] = my_packet->inventory[i].itemnum;
+			TempInstance->itemtable.enhance[i] = my_packet->inventory[i].enchant;
+		}
+		TempInstance->MAINLEVEL = my_packet->level;
+		TempInstance->LEVELEXP = my_packet->exp;
+		TempInstance->location.X = my_packet->x;
+		TempInstance->location.Y = my_packet->y;
+		TempInstance->location.Z = my_packet->z;
+	
+		TempInstance->loadinventory();
+		TempInstance->firstsetting();
+	
+
+	}break;
+	case SC_LOADCHARsc:
+	{
+		cssc_packet_saveloadcharsc *my_packet = reinterpret_cast<cssc_packet_saveloadcharsc  *>(buf);
+		for (auto i = 0; i < 9; i++)
+		{
+			TempInstance->USEWEAPONLEVEL[i] = my_packet->weapon[i].weponlevel;
+			TempInstance->USEWEAPONLEVELEXP[i] = my_packet->weapon[i].weponexp;
+		}
+		
+		const TCHAR* temptext;
+		temptext = my_packet->nickname;
+		TempInstance->nickname = temptext;
+		TempInstance->secondsetting();
+
+	}break;
+	case SC_AFTERNICKNAME:
+	{
+		sc_packet_afternickname *my_packet = reinterpret_cast<sc_packet_afternickname  *>(buf);
+		TempInstance->afternickname(my_packet->after);
+
+	}break;
+
 	default:
 	{
 		UKismetSystemLibrary::PrintString(TempInstance->GetWorld(), TEXT("이상패킷"), true, true, FLinearColor(1.f, 1.f, 1.f, 1.f), 10.f);
@@ -199,8 +238,11 @@ void WorkerThreadStart()
 UMyGameInstance::UMyGameInstance()
 {
 	TempInstance = this;
-
-
+	itemtable.amount.Init(-1, 20);
+	itemtable.itemnum.Init(-1, 20);
+	itemtable.enhance.Init(-1, 20);
+	USEWEAPONLEVEL.Init(-1, 9);
+	USEWEAPONLEVELEXP.Init(-1,9);
 }
 
 
@@ -220,7 +262,7 @@ bool UMyGameInstance::connectserver()
 		ZeroMemory(&ServerAddr, sizeof(SOCKADDR_IN));
 		ServerAddr.sin_family = AF_INET;
 		ServerAddr.sin_port = htons(4000);
-		ServerAddr.sin_addr.s_addr = inet_addr("211.178.34.106");
+		ServerAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
 
 		HANDLE iocp = CreateIoCompletionPort((HANDLE)myclient.s, g_hIocp, 0, 0);
@@ -311,4 +353,62 @@ bool UMyGameInstance::trylistenservercreate()
 	enter_packet.size = sizeof(cs_simpletry);
 	SendPacket(reinterpret_cast<unsigned char *>(&enter_packet));
 	return true;
+}
+
+bool UMyGameInstance::saveinventory()
+{
+	cssc_packet_saveloadchar enter_packet;
+	enter_packet.type = CS_SAVECHAR;
+	enter_packet.size = sizeof(cssc_packet_saveloadchar);
+	for (auto i = 0; i < 20; i++)
+	{
+		enter_packet.inventory[i].amount = itemtable.amount[i];
+		enter_packet.inventory[i].itemnum = itemtable.itemnum[i];
+	}
+	SendPacket(reinterpret_cast<unsigned char *>(&enter_packet));
+	return false;
+}
+
+bool UMyGameInstance::checkpossibletext(FString Tempstring)
+{
+	const TCHAR* temptext = *Tempstring;
+
+	int len = 256;
+	char ctemp[256];
+
+	WideCharToMultiByte(CP_ACP, 0, temptext, len, ctemp, len, NULL, NULL);
+	for (auto i = 0; i < wcslen(temptext); i++)
+	{
+		if (!temptext[i])
+			break;
+		if (temptext[i] < 44032 || temptext[i]> 55199)
+		{
+			if (((temptext[i] >= 0x41) && (temptext[i] <= 0x5A)) || ((temptext[i] >= 0x61) && (temptext[i] <= 0x7A)))
+			{
+				continue;
+			}
+			else if ((temptext[i] >= '0') && (temptext[i] <= '9')) {
+				continue;
+			}
+				UKismetSystemLibrary::PrintString(TempInstance->GetWorld(), TEXT("1실행"), true, true, FLinearColor(1.f, 1.f, 1.f, 1.f), 10.f);
+				return 0;
+		}
+		else {
+			//UKismetSystemLibrary::PrintString(TempInstance->GetWorld(), TEXT("5실행"), true, true, FLinearColor(1.f, 1.f, 1.f, 1.f), 10.f);
+			continue;
+		}
+	}
+
+	return true;
+}
+
+bool UMyGameInstance::Trycreatenickname(FString Tempstring)
+{
+	cs_packet_trycreatenickname enter_packet;
+	enter_packet.type = CS_TRYNICKNAME;
+	enter_packet.size = sizeof(cs_packet_trycreatenickname);
+	const TCHAR* temptext = *Tempstring;
+	wcsncpy_s(enter_packet.nickname, temptext, 20);
+	SendPacket(reinterpret_cast<unsigned char *>(&enter_packet));
+	return false;
 }
